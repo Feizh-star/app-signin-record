@@ -1,0 +1,88 @@
+<template>
+	<uni-nav-bar :title="title" statusBar></uni-nav-bar>
+	<view class="content">
+		<view class="home-content">
+			<scroll-view scroll-y="true" >
+				<view v-for="i in 100" :key="i">
+					{{i}}
+				</view>
+			</scroll-view>
+		</view>
+		<view class="btns">
+			<button type="primary" v-if="showMorningBtn">早上打卡</button>
+			<button type="primary" v-if="showEveningBtn" @click="eveningClick">晚上打卡</button>
+		</view>
+	</view>
+</template>
+
+<script setup>
+import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
+import { dateToString, toHumanFormatterYMD } from '../../../utils/moment.js'
+
+const title = computed(() => dateToString(timestamp.value, toHumanFormatterYMD))
+const timestamp = ref(new Date())
+
+let interval = null
+const refreshTimerRecord = ref(0)
+watch(refreshTimerRecord, (newVal) => {
+	if (newVal > 60 * 10 && interval) {
+		clearInterval(interval)
+		interval = null
+		initTimer()
+	}
+})
+function initTimer() {
+	interval && clearInterval(interval)
+	interval = setInterval(() => {
+		timestamp.value = new Date()
+		refreshTimerRecord.value++
+	}, 1000)
+}
+function clearTimer() {
+	clearInterval(interval)
+}
+onMounted(() => {
+	initTimer()
+})
+onUnmounted(() => {
+	clearTimer()
+})
+
+const showMorningBtn = computed(() => {
+	const hour = timestamp.value.getHours()
+	return hour > 7 && hour < 9
+})
+const showEveningBtn = computed(() => {
+	const hour = timestamp.value.getHours()
+	return (hour >= 18 && hour <= 23) || (hour === 0) || hour < 7
+})
+function eveningClick() {
+	
+}
+
+const test = {
+	"2023": {
+		"04": {
+			"14": {
+				"morning": false,
+				"evening": false,
+				"daily": false
+			}
+		}
+	}
+}
+</script>
+
+<style lang="scss" scoped>
+.content {
+	flex: 1;
+	padding: 8px 0;
+	.home-content {
+		flex: 1;
+		overflow-y: auto;
+	}
+	.btns {
+		
+	}
+}
+</style>
